@@ -15,13 +15,18 @@
  * dropped in column 2 should take [1,2].
 **/
 
-
 /**
  * Constructor sets an empty board (default 3 rows, 4 columns) and 
  * specifies it is X's turn first
 **/
 Piezas::Piezas()
 {
+  this->turn = X;
+
+  // Start with a fresh board just in case
+  this->board.clear();
+  // Set the board columns
+  this->board.resize(BOARD_COLS);
 }
 
 /**
@@ -30,6 +35,11 @@ Piezas::Piezas()
 **/
 void Piezas::reset()
 {
+  // Delete the board
+  this->board.clear();
+
+  // Set the board columns
+  this->board.resize(BOARD_COLS);
 }
 
 /**
@@ -39,10 +49,29 @@ void Piezas::reset()
  * In that case, placePiece returns Piece Blank value 
  * Out of bounds coordinates return the Piece Invalid value
  * Trying to drop a piece where it cannot be placed loses the player's turn
-**/ 
+**/
 Piece Piezas::dropPiece(int column)
 {
-    return Blank;
+  // The piece to place
+  Piece droppedPiece = this->turn;
+
+  // Change players turn
+  this->turn = (this->turn == X) ? O : X;
+
+  // Check if out of bounds
+  if (column < 0 || column > BOARD_COLS) {
+    return Invalid;
+  }
+
+  // Check the column isn't full
+  if (this->board[column].size() != BOARD_ROWS) {
+    // Place the piece on the "top"
+    this->board[column].push_back(droppedPiece);
+    return droppedPiece;
+  }
+
+  // Column is full or something unpredicted happened
+  return Blank;
 }
 
 /**
@@ -51,7 +80,24 @@ Piece Piezas::dropPiece(int column)
 **/
 Piece Piezas::pieceAt(int row, int column)
 {
-    return Blank;
+  // Check out of bounds column
+  if (column < 0 || column > BOARD_COLS) {
+    return Invalid;
+  }
+
+  // Check out of bounds row
+  if (row < 0 || row > BOARD_ROWS) {
+    return Invalid;
+  }
+
+  // Make sure there are enough pieces in the column
+  if (row < this->board[column].size()) {
+    // Return the piece at the location
+    return this->board[column][row];
+  }
+
+  // Not invalid, and location hasn't been modified yet
+  return Blank;
 }
 
 /**
@@ -65,5 +111,142 @@ Piece Piezas::pieceAt(int row, int column)
 **/
 Piece Piezas::gameState()
 {
-    return Blank;
+  // Check if board is filled
+  bool anyBlank = false;
+  for (int i=0; i < BOARD_COLS; i++) {
+    // If the length of the column isn't the amount of rows
+    // there is a blank piece
+    anyBlank = this->board[i].size() != BOARD_ROWS;
+  }
+
+  // If any blank, game is not over
+  if (anyBlank) return Invalid;
+
+  short int Xcount = 0;
+  short int Ocount = 0;
+
+  /* Count the columns */
+
+  // Count max x's in columns
+  for (int col=0; col < BOARD_COLS; col++) {
+    int localMax = 0;
+    int localCount = 0;
+    Piece lastPiece = X;
+
+    // Check every piece in the column
+    for (int row=0; row < BOARD_ROWS; row++) {
+      // If we see another of the same piece
+      // and the current piece is X
+      if (this->board[col][row] == X && this->board[col][row] == lastPiece) {
+        // Increase # of successive pieces
+        localCount++;
+        // If our current string of Pieces is larger, set the max
+        if (localCount > localMax) localMax = localCount;
+      } else {
+        // The streak has ended
+        localCount = 0;
+      }
+      // Set our last seen piece
+      lastPiece = this->board[col][row];
+    }
+
+    // Set the max X
+    if (localMax > Xcount) Xcount = localMax;
+  }
+
+  // Count max O's in columns
+  for (int col=0; col < BOARD_COLS; col++) {
+    int localMax = 0;
+    int localCount = 0;
+    Piece lastPiece = O;
+
+    // Check every piece in the column
+    for (int row=0; row < BOARD_ROWS; row++) {
+      // If we see another of the same piece
+      // and the current piece is O
+      if (this->board[col][row] == O && this->board[col][row] == lastPiece) {
+        // Increase # of successive pieces
+        localCount++;
+        // If our current string of Pieces is larger, set the max
+        if (localCount > localMax) localMax = localCount;
+      } else {
+        // The streak has ended
+        localCount = 0;
+      }
+      // Set our last seen piece
+      lastPiece = this->board[col][row];
+    }
+
+    // Set the max O
+    if (localMax > Ocount) Ocount = localMax;
+  }
+
+  /* Count the rows */
+
+  // Count max x's in rows
+  for (int row=0; row < BOARD_ROWS; row++) {
+    int localMax = 0;
+    int localCount = 0;
+    Piece lastPiece = X;
+
+    // Check every piece in the column
+    for (int col=0; col < BOARD_COLS; col++) {
+      // If we see another of the same piece
+      // and the current piece is X
+      if (this->board[col][row] == X && this->board[col][row] == lastPiece) {
+        // Increase # of successive pieces
+        localCount++;
+        // If our current string of Pieces is larger, set the max
+        if (localCount > localMax) localMax = localCount;
+      } else {
+        // The streak has ended
+        localCount = 0;
+      }
+      // Set our last seen piece
+      lastPiece = this->board[col][row];
+    }
+
+    // Set the max X
+    if (localMax > Xcount) Xcount = localMax;
+  }
+
+  // Count max o's in rows
+  for (int row=0; row < BOARD_ROWS; row++) {
+    int localMax = 0;
+    int localCount = 0;
+    Piece lastPiece = O;
+
+    // Check every piece in the column
+    for (int col=0; col < BOARD_COLS; col++) {
+      // If we see another of the same piece
+      // and the current piece is O
+      if (this->board[col][row] == O && this->board[col][row] == lastPiece) {
+        // Increase # of successive pieces
+        localCount++;
+        // If our current string of Pieces is larger, set the max
+        if (localCount > localMax) localMax = localCount;
+      } else {
+        // The streak has ended
+        localCount = 0;
+      }
+      // Set our last seen piece
+      lastPiece = this->board[col][row];
+    }
+
+    // Set the max O
+    if (localMax > Ocount) Ocount = localMax;
+  }
+
+  // Check if X won
+  if (Xcount > Ocount) {
+    return X;
+  }
+
+  // Check if O won
+  if (Ocount > Xcount) {
+    return O;
+  }
+
+  // It's a tie
+  return Blank;
 }
