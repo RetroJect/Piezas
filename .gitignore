@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+Piezas
+PiezasTest
+
+# gtest files
+*.gcov
+*.gcda
+*.gcno
